@@ -8,6 +8,7 @@ class EditMe extends Component {
   }
   resetAccount(){
     this.userSession.deleteFile('documents/')
+    this.userSession.deleteFile('documents/index.json')
   }
   render() {
 

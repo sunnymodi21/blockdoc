@@ -6,7 +6,7 @@ class MyDocuments extends Component {
     super(props)
     // this.getDocumentList()
     this.userSession = this.props.userSession
-    this.dataURL = ''
+    this.image = ''
     this.state = {
       documents: [],
       capturedImageURL:'',
@@ -38,19 +38,22 @@ class MyDocuments extends Component {
     this.userSession.getFile('documents/'+currentDocument.fileId)
     .then((data)=> {
       if(data != null){
-        const fileData = data
-        const image = new Image()
-        const canvas = this.refs.canvas
-        console.log(canvas)
-        const ctx = canvas.getContext("2d")
-        image.onload = function() {
-          canvas.width = 100
-          canvas.height = 100
-          ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, 100, 100)
-        }
-        image.src = fileData
+        const imageData = JSON.parse(data)
+        console.log(imageData)
+        this.renderImage(imageData)
       }
     })
+  }
+
+  renderImage(imageData){
+    const image = new Uint8ClampedArray(imageData.data)
+    const canvas = this.refs.canvas
+    canvas.width = imageData.width
+    canvas.height = imageData.height
+    const ctx = canvas.getContext("2d")
+    const img = ctx.createImageData(imageData.width, imageData.height)
+    img.data.set(image)
+    ctx.putImageData(img, 0, 0)
   }
 
   uploadDocument(){
@@ -64,7 +67,8 @@ class MyDocuments extends Component {
       const timestamp = date.getTime()
       documents.push({fileName: this.state.fileName, date, fileId: timestamp})
       this.userSession.putFile('documents/index.json', JSON.stringify(documents))
-      this.userSession.putFile('documents/'+timestamp, this.dataURL) 
+      console.log(JSON.stringify(this.image))
+      this.userSession.putFile('documents/'+timestamp, JSON.stringify(this.image)) 
       this.setState({
         documents
       })
@@ -114,7 +118,8 @@ class MyDocuments extends Component {
     const ctx = cameraSensor.getContext("2d")
     ctx.filter = "grayscale(100%) contrast(100%)"
     ctx.drawImage(this.cameraView, 0, 0)
-    this.dataURL = cameraSensor.toDataURL()
+    this.image = ctx.getImageData(0, 0, this.cameraView.videoWidth, this.cameraView.videoWidth)
+    console.log(this.image)
     this.setState({
       isCaptured: true
     })
