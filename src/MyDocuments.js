@@ -1,22 +1,25 @@
 import React, { Component } from 'react'
 import { cameraConstraints } from './constants'
+import ProcessImage from 'react-imgpro'
 
 class MyDocuments extends Component {
   constructor(props){
     super(props)
     // this.getDocumentList()
     this.userSession = this.props.userSession
-    this.dataURL = ''
     this.state = {
       documents: [],
       capturedImageURL:'',
       isCaptured: false,
-      fileName:'untitled.jpg'
+      fileName:'untitled.jpg',
+      dataURL: ''
     }
     this.capture = this.capture.bind(this)
     this.cameraStart = this.cameraStart.bind(this)
     this.getDocument = this.getDocument.bind(this)
     this.uploadDocument = this.uploadDocument.bind(this)
+    this.photoWidth = 200
+    this.photoHeight = 200
     this.getDocumentList()
   }
 
@@ -38,17 +41,10 @@ class MyDocuments extends Component {
     this.userSession.getFile('documents/'+currentDocument.fileId)
     .then((data)=> {
       if(data != null){
-        const fileData = data
-        const image = new Image()
-        const canvas = this.refs.canvas
-        console.log(canvas)
-        const ctx = canvas.getContext("2d")
-        image.onload = function() {
-          canvas.width = 100
-          canvas.height = 100
-          ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, 100, 100)
-        }
-        image.src = fileData
+        const dataURL = data
+        this.setState({
+          dataURL
+        })
       }
     })
   }
@@ -71,7 +67,7 @@ class MyDocuments extends Component {
     })
   }
 
-  toShortFormat(date) {
+  toShortFormat(date){
     const dateObj = new Date(date)
     const month_names =["Jan","Feb","Mar",
                       "Apr","May","Jun",
@@ -107,14 +103,23 @@ class MyDocuments extends Component {
     })
   }
 
+  renderImage(){
+    const canvas = this.refs.canvas
+    const ctx = canvas.getContext("2d")
+    const width = this.photoWidth,
+          height = this.photoHeight    
+    canvas.width = width
+    canvas.height = height
+    // ctx.filter = "grayscale(100%) contrast(100%)"
+    ctx.drawImage(this.cameraView, 0, 0,width,height)
+    const dataURL = canvas.toDataURL()     
+    this.setState({
+      dataURL
+    })
+  }
+
   capture() {
-    const cameraSensor = this.refs.canvas
-    cameraSensor.width = this.cameraView.videoWidth
-    cameraSensor.height = this.cameraView.videoHeight
-    const ctx = cameraSensor.getContext("2d")
-    ctx.filter = "grayscale(100%) contrast(100%)"
-    ctx.drawImage(this.cameraView, 0, 0)
-    this.dataURL = cameraSensor.toDataURL()
+    this.renderImage()
     this.setState({
       isCaptured: true
     })
@@ -126,8 +131,18 @@ class MyDocuments extends Component {
       <div>
         <h3>Documents</h3>
         <button onClick={this.cameraStart}>Scan</button>
-        <canvas ref="canvas" id="captured"></canvas>
+        <canvas hidden={true} ref="canvas" id="captured"></canvas>
         <video hidden={this.state.isCaptured} ref='video' autoPlay playsInline></video>
+        {this.state.dataURL===''?'':         
+          <ProcessImage
+            image={this.state.dataURL}
+            resize={{ width: 500, height: 500 }}
+            greyscale={true}
+            contrast={0.4}
+            colors={{brighten: 10}}
+            processedImage={(src, err) => this.setState({ src, err})}
+          />
+        }
         <button onClick={this.capture}>Capture</button>
         {/* <i className="fas fa-camera"></i> */}
         <button onClick={this.uploadDocument}>Upload Document</button>
