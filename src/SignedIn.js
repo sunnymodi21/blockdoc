@@ -32,8 +32,8 @@ class SignedIn extends Component {
     }
 
     return (
-      <div className="SignedIn">
-      <NavBar username={username} signOut={this.signOut}/>
+      <div className="row">
+      <NavBar signOut={this.signOut}/>
       <Switch>
               <Route
                 path='/me'
