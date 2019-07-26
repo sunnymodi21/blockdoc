@@ -2,6 +2,6 @@ body {
   background-color: rgb(241, 246, 249);
 }
 
-.btn-primary:hover {
+.btn-secondary:hover {
   opacity: 0.5;
 }

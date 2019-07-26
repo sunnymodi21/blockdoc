@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import jsPDF from 'jspdf'
 
 class MyDocuments extends Component {
   constructor(props){
@@ -30,14 +29,26 @@ class MyDocuments extends Component {
   }
 
   getDocument(currentDocument){
-    currentDocument = this.state.documents[0]
     this.userSession.getFile('documents/'+currentDocument.fileId)
     .then((data)=> {
       if(data != null){
-        this.setState({
-          data
-        })
+        var element = document.createElement('a')
+        element.setAttribute('href', data)
+        element.setAttribute('download', currentDocument.name)
+        element.click()
       }
+    })
+  }
+
+  deleteDocument(currentDocument){
+   const documents = this.state.documents.filter((document)=>{
+      return document.fileId===currentDocument.fileId ? false: true
+    })
+    console.log(documents)
+    this.userSession.putFile('documents/index.json', JSON.stringify(documents))
+    this.userSession.deleteFile('documents/'+currentDocument.fileId)
+    this.setState({
+      documents
     })
   }
 
@@ -51,14 +62,22 @@ class MyDocuments extends Component {
   }
 
   documentList(){
-    const documentList = this.state.documentList
-    const documentItemList =[]
-    documentList.forEach((documentItem) =>
-    {
-      const shortdate = this.toShortFormat(documentItem.date)
-      documentItemList.push(<li>key={shortdate}>{shortdate}</li>)
-    })
-    return documentItemList
+    const documentHTMLList = this.state.documents.map((file) =>
+      <tr key={file.date}>
+        <td className="text-primary" style={{cursor: "pointer"}}>
+          {file.name}
+        </td>
+        <td>{this.toShortFormat(file.date)}</td>
+        <td>{file.size}</td>
+        <td>
+          <span style={{cursor: "pointer"}} className="px-1 fa fa-download" onClick={()=>{this.getDocument(file)}}>
+          </span>
+          <span style={{cursor: "pointer"}} className="px-1 fa fa-trash" onClick={()=>{this.deleteDocument(file)}}>
+          </span>
+        </td>
+      </tr>
+    );
+    return documentHTMLList
   }
 
   render() {
@@ -70,17 +89,12 @@ class MyDocuments extends Component {
               <tr>
                 <th scope="col">Name</th>
                 <th scope="col">Modified</th>
-                <th scope="col">Actions</th>
                 <th scope="col">File Size</th>
+                <th scope="col">Actions</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>1</td>
-                <td>Mark</td>
-                <td>Otto</td>
-                <td>100kB</td>
-              </tr>
+              {this.documentList()}
             </tbody>
           </table>
         </div>

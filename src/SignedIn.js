@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { Switch, Route, Redirect } from 'react-router-dom'
 import { UserSession } from 'blockstack'
-import EditMe from './EditMe'
+// import EditMe from './EditMe'
 import MyDocuments from './MyDocuments'
 import NavBar from './NavBar'
 import { appConfig } from './constants'
@@ -23,7 +23,6 @@ class SignedIn extends Component {
   }
 
   render() {
-    const username = this.userSession.loadUserData().username
     const userSession = this.userSession
     if(window.location.pathname === '/') {
       return (
@@ -35,25 +34,16 @@ class SignedIn extends Component {
       <div className="row">
       <NavBar signOut={this.signOut}/>
       <Switch>
-              <Route
-                path='/me'
-                render={
-                  routeProps => <EditMe
-                  username={username}
-                  userSession={userSession}
-                  {...routeProps} />
-                }
-              />
-              <Route
-                path={`/mydocuments`}
-                render={
-                  routeProps => <MyDocuments
-                  protocol={window.location.protocol}
-                  userSession={userSession}
-                  realm={window.location.origin.split('//')[1]}
-                  {...routeProps} />
-                }
-              />
+        <Route
+          path={`/mydocuments`}
+          render={
+            routeProps => <MyDocuments
+            protocol={window.location.protocol}
+            userSession={userSession}
+            realm={window.location.origin.split('//')[1]}
+            {...routeProps} />
+          }
+        />
       </Switch>
       </div>
     );

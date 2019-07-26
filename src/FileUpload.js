@@ -7,14 +7,13 @@ class FileUpload extends Component {
     super(props)
     this.userSession = this.props.userSession
     this.state = {
-      documents: [],
-      capturedImageURL:'',
-      isCaptured: false,
+      // capturedImageURL:'',
+      // isCaptured: false,
       fileName:'untitled.jpg',
       data: ''
     }
-    this.capture = this.capture.bind(this)
-    this.cameraStart = this.cameraStart.bind(this)
+    // this.capture = this.capture.bind(this)
+    // this.cameraStart = this.cameraStart.bind(this)
     this.uploadDocument = this.uploadDocument.bind(this)
     this.onFileSelect = this.onFileSelect.bind(this)
     this.photoWidth = 200
@@ -39,57 +38,48 @@ class FileUpload extends Component {
     })
   }
 
-  toShortFormat(date){
-    const dateObj = new Date(date)
-    const month_names =["Jan","Feb","Mar",
-                      "Apr","May","Jun",
-                      "Jul","Aug","Sep",
-                      "Oct","Nov","Dec"]
-    return "" + dateObj.getDate() + " " + month_names[dateObj.getMonth()] + " " + dateObj.getFullYear()
-  }
+  // cameraStart() {
+  //   this.setState({
+  //     isCaptured: false
+  //   })
+  //   this.cameraView = this.refs.video
+  //   navigator.mediaDevices
+  //   .getUserMedia(cameraConstraints)
+  //   .then((stream)=>{
+  //       this.track = stream.getTracks()[0]
+  //       this.cameraView.srcObject = stream
+  //   })
+  //   .catch(function(error) {
+  //       console.error("Oops. Something is broken.", error)
+  //   })
+  // }
 
-  cameraStart() {
-    this.setState({
-      isCaptured: false
-    })
-    this.cameraView = this.refs.video
-    navigator.mediaDevices
-    .getUserMedia(cameraConstraints)
-    .then((stream)=>{
-        this.track = stream.getTracks()[0]
-        this.cameraView.srcObject = stream
-    })
-    .catch(function(error) {
-        console.error("Oops. Something is broken.", error)
-    })
-  }
+  // renderImage(){
+  //   const canvas = this.refs.canvas
+  //   const ctx = canvas.getContext("2d")
+  //   const width = this.cameraView.videoHeight,
+  //         height = this.cameraView.videoHeight    
+  //   canvas.width = width
+  //   canvas.height = height
+  //   ctx.drawImage(this.cameraView, 0, 0,width,height)
+  //   const data = canvas.toDataURL()     
+  //   this.setState({
+  //     data
+  //   })
+  // }
 
-  renderImage(){
-    const canvas = this.refs.canvas
-    const ctx = canvas.getContext("2d")
-    const width = this.photoWidth,
-          height = this.photoHeight    
-    canvas.width = width
-    canvas.height = height
-    ctx.drawImage(this.cameraView, 0, 0,width,height)
-    const data = canvas.toDataURL()     
-    this.setState({
-      data
-    })
-  }
-
-  capture(){
-    this.renderImage()
-    this.setState({
-      isCaptured: true
-    })
-    this.track.stop()
-  }
+  // capture(){
+  //   this.renderImage()
+  //   this.setState({
+  //     isCaptured: true
+  //   })
+  //   this.track.stop()
+  // }
 
   onFileSelect(e){
     const file =  e.target.files[0]
     console.log(file.name)
-    if ( /\.(jpe?g|png|gif)$/i.test(file.name) ) {
+    if ( /\.(jpe?g|png)$/i.test(file.name) ) {
       const reader  = new FileReader();
       reader.onload= (e)=>{
         this.setState({
@@ -97,6 +87,8 @@ class FileUpload extends Component {
         })
       }
       reader.readAsDataURL(file)
+    } else if( /\.(pdf)$/i.test(file.name)){
+      console.log(file.name)
     }
   }
 
@@ -109,7 +101,7 @@ class FileUpload extends Component {
             <span style={{cursor: "pointer"}} className="fa fa-folder-open-o" aria-hidden="true"></span>
             <input style={{display:"none"}} type="file" className="form-control-file"  aria-describedby="imageFile" onChange={this.onFileSelect} id="document"></input>
           </label>
-          <small id="imageFile" className="form-text text-muted">Only jpeg or png format allowed</small>
+          {/* <small id="imageFile" className="form-text text-muted">Only jpeg or png format allowed</small> */}
         </div>
         <canvas hidden={true} ref="canvas" id="captured"></canvas>
         <video hidden={this.state.isCaptured} ref='video' autoPlay playsInline></video>
@@ -123,8 +115,8 @@ class FileUpload extends Component {
             processedImage={(src, err) => this.setState({ src, err})}
           />
         }
-        <button onClick={this.cameraStart}>Scan</button>
-        <button onClick={this.capture}>Capture</button>
+        {/* <button onClick={this.cameraStart}>Scan</button>
+        <button onClick={this.capture}>Capture</button> */}
         {/* <i className="fas fa-camera"></i> */}
         <button onClick={this.uploadDocument}>Upload Document</button>
       </div>
