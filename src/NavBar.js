@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { UserSession } from 'blockstack'
 import { appConfig } from './constants'
 import './NavBar.css'
-import FileSelect from './FileSelect'
 
 class NavBar extends Component {
   constructor(){
@@ -12,7 +11,6 @@ class NavBar extends Component {
   }
 
   render() {
-    const userSession = this.userSession
     return (
       <nav className="navbar navbar-expand-md navbar-dark bg-blue fixed-top">
       <Link className="navbar-brand" to="/">BlockDoc</Link>
@@ -22,10 +20,7 @@ class NavBar extends Component {
             <Link className="nav-link" to={`/mydocuments`}>My Documents</Link>
           </li>
         </ul>
-      </div>
-      <FileSelect 
-      userSession={userSession}
-      />
+      </div>  
       <button
         className="btn btn-secondary"
         onClick={this.props.signOut.bind(this)}

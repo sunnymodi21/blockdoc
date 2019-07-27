@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import FileSelect from './FileSelect'
 
 class MyDocuments extends Component {
   constructor(props){
@@ -44,9 +45,21 @@ class MyDocuments extends Component {
    const documents = this.state.documents.filter((document)=>{
       return document.fileId===currentDocument.fileId ? false: true
     })
-    console.log(documents)
     this.userSession.putFile('documents/index.json', JSON.stringify(documents))
     this.userSession.deleteFile('documents/'+currentDocument.fileId)
+    this.setState({
+      documents
+    })
+  }
+
+  renameDocument(currentDocument){
+    const documents = this.state.documents.map((document)=>{
+      if(document.fileId===currentDocument.fileId){
+        document.name=currentDocument.name
+      }
+      return document
+    })
+    this.userSession.putFile('documents/index.json', JSON.stringify(documents))
     this.setState({
       documents
     })
@@ -64,7 +77,7 @@ class MyDocuments extends Component {
   documentList(){
     const documentHTMLList = this.state.documents.map((file) =>
       <tr key={file.date}>
-        <td className="text-primary" style={{cursor: "pointer"}}>
+        <td>
           {file.name}
         </td>
         <td>{this.toShortFormat(file.date)}</td>
@@ -79,11 +92,19 @@ class MyDocuments extends Component {
     );
     return documentHTMLList
   }
+  
+  updateDocumentList(documents) {
+    this.setState({documents})
+  }
 
   render() {
+    const userSession = this.userSession
     return (
-        <div id="main" className="col-md-7">
-          <h3>Documents</h3>
+        <div className="col-xs col-md">
+          <FileSelect
+            updateDocumentList = {this.updateDocumentList.bind(this)}  
+            userSession={userSession}
+          />
           <table className="table">
             <thead>
               <tr>

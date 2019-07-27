@@ -22,7 +22,7 @@ class FileSelect extends Component {
       documents.push({name: fileName, size, date, fileId: timestamp })
       this.userSession.putFile('documents/index.json', JSON.stringify(documents))
       this.userSession.putFile(`documents/${timestamp}`, this.data)
-      updateDocumentList(documents)
+      this.props.updateDocumentList(documents)
     })
   }
 
@@ -51,7 +51,7 @@ class FileSelect extends Component {
 
   render(){
     return (
-      <div className="pr-1">
+      <div className="p-2">
         {/* <span style={{cursor: "pointer"}} className="fa fa-folder-open-o" aria-hidden="true"></span>
         <input style={{display:"none"}} type="file" className="form-control-file"  aria-describedby="imageFile" onChange={this.onFileSelect} id="document"></input> */}
           <button
@@ -68,10 +68,6 @@ class FileSelect extends Component {
       </div>
     )
   }
-}
-
-function updateDocumentList(documents) {
-  this.setState({documents})
 }
 
 export default FileSelect
