@@ -9,19 +9,15 @@ class FileSelect extends Component {
   }
 
   uploadDocument(){
-    const fileName = this.fileName
-    const size = this.size
     this.userSession.getFile('documents/index.json')
     .then((data)=> {
       let documents = []
       if(data != null){
         documents = JSON.parse(data)       
       }
-      const date = new Date()
-      const timestamp = date.getTime()
-      documents.push({name: fileName, size, date, fileId: timestamp })
+      documents.push(this.file)
       this.userSession.putFile('documents/index.json', JSON.stringify(documents))
-      this.userSession.putFile(`documents/${timestamp}`, this.data)
+      this.userSession.putFile(`documents/${this.file.timestamp}`, this.data)
       this.props.updateDocumentList(documents)
     })
   }
@@ -32,16 +28,28 @@ class FileSelect extends Component {
     if (/\.(jpe?g|png|pdf)$/i.test(file.name)) {
       const reader  = new FileReader();
       reader.onload= (e)=>{
-        this.fileName = file.name
         this.data = e.target.result
-        let imgFileSize = Math.round((this.data.length)*3/4);
-        let count = 0
-        while(imgFileSize>1000){
-          imgFileSize = imgFileSize/1000
-          count +=1
+        let imgFileSize = Math.round((this.data.length)*3/4)
+        if(imgFileSize<25000000){
+          const fileObj = {}    
+          const date = new Date()
+          fileObj.date = date
+          const timestamp = date.getTime()
+          fileObj.fileId = timestamp
+          let count = 0
+          while(imgFileSize>1000){
+            imgFileSize = imgFileSize/1000
+            count +=1
+          }
+          fileObj.size = Math.floor(imgFileSize).toString()+' '+bytes[count]
+          const fileNameArray = file.name.split(".")
+          
+          fileObj.name = fileNameArray.slice(0,fileNameArray.length-1).join('.')
+          fileObj.extension = fileNameArray[fileNameArray.length-1]
+          this.file = fileObj
+          console.log(this.file)
+          this.uploadDocument()
         }
-        this.size = Math.floor(imgFileSize).toString()+' '+bytes[count]
-        this.uploadDocument()
       }
       reader.readAsDataURL(file)
       // reader.readAsBinaryString(file)

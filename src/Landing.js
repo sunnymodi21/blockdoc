@@ -17,14 +17,18 @@ class Landing extends Component {
 
   render() {
     return (
-      <div className="Landing">
-        <div className="form-signin">
-          <h1 className="h1 mb-3 font-weight-normal">DocBlock</h1>
+      <div className="masthead d-flex">
+        <div className="container text-center my-auto">
+          <h1 className="mb-1 text-white">Blockdoc</h1>
+          <h4 className="mb-4 text-white">
+            <em>Decentralized secure documents storage and PDF editor</em>
+          </h4>
           <button
-            className="btn btn-lg btn-primary btn-block"
-            onClick={this.signIn.bind(this)}>Sign in with Blockstack
-          </button>
+              className="btn btn-lg btn-primary"
+              onClick={this.signIn.bind(this)}>Sign in with Blockstack
+            </button>
         </div>
+        <div className="overlay"></div>
       </div>
     );
   }

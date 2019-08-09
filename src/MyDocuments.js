@@ -69,7 +69,7 @@ class MyDocuments extends Component {
     const documentHTMLList = this.state.documents.map((file) =>
       <tr key={file.date}>
         <td className="text-truncate" style={{maxWidth: "100px"}} >
-          {file.name}
+          {`${file.name}.${file.extension}`}
         </td>
         <td className="text-truncate" style={{maxWidth: "80px"}}>{this.toShortFormat(file.date)}</td>
         <td>{file.size}</td>
@@ -146,7 +146,7 @@ class MyDocuments extends Component {
               {this.documentList()}
             </tbody>
           </table>}
-          <Modal show={this.state.showEditModal}  onSave={this.onSaveName.bind(this)}  handleClose={this.onHideRename.bind(this)} >
+          <Modal show={this.state.showEditModal} onSave={this.onSaveName.bind(this)} handleClose={this.onHideRename.bind(this)}>
           <form>
               <div className="form-group">
                 <label htmlFor="file-name" className="col-form-label">File Name:</label>
