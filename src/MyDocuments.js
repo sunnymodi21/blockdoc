@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import FileSelect from './FileSelect'
 import Modal from './Modal'
+import Spinner from './Spinner'
 
 class MyDocuments extends Component {
   constructor(props){
@@ -13,7 +14,8 @@ class MyDocuments extends Component {
       fileName:'untitled.jpg',
       data: '',
       name:'',
-      showEditModal: false
+      showEditModal: false,
+      loader: true
     }
     this.file = {}
     this.getDocument = this.getDocument.bind(this)
@@ -23,24 +25,35 @@ class MyDocuments extends Component {
   getDocumentList(){
     this.userSession.getFile('documents/index.json')
     .then((data)=> {
+      console.log(data)
       if(data != null){
         const documents = JSON.parse(data)
         console.log(documents)
         this.setState({
-          documents
+          documents,
+          loader: false
         })
       }
     })
   }
 
   getDocument(currentDocument){
+    this.setState({
+      loader: true
+    })
     this.userSession.getFile('documents/'+currentDocument.fileId)
     .then((data)=> {
       if(data != null){
-        var element = document.createElement('a')
-        element.setAttribute('href', data)
-        element.setAttribute('download', currentDocument.name)
-        element.click()
+        var a = document.createElement('a')
+        const blob = new Blob([data], {type: "octet/stream"}),
+        url = window.URL.createObjectURL(blob);
+        a.href = url;
+        a.download = currentDocument.name+'.'+currentDocument.extension;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.setState({
+          loader: false
+        })
       }
     })
   }
@@ -128,6 +141,8 @@ class MyDocuments extends Component {
     const userSession = this.userSession
     return (
         <div className="col-md">
+          
+          {this.state.loader? <Spinner/>:''}
           <FileSelect
             updateDocumentList = {this.updateDocumentList.bind(this)}  
             userSession={userSession}

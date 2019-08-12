@@ -1,14 +1,20 @@
 import React, { Component } from 'react'
-
+import Spinner from './Spinner'
 const bytes = ['Bytes','KB', 'MB']
 
 class FileSelect extends Component {
   constructor(props){
     super(props)
+    this.state = {
+      uploading: false
+    }
     this.userSession = this.props.userSession
   }
 
   uploadDocument(){
+    this.setState({
+      uploading: true
+    })
     this.userSession.getFile('documents/index.json')
     .then((data)=> {
       let documents = []
@@ -17,8 +23,12 @@ class FileSelect extends Component {
       }
       documents.push(this.file)
       this.userSession.putFile('documents/index.json', JSON.stringify(documents))
-      this.userSession.putFile(`documents/${this.file.timestamp}`, this.data)
-      this.props.updateDocumentList(documents)
+      this.userSession.putFile(`documents/${this.file.fileId}`, this.data).then((res)=>{
+        this.props.updateDocumentList(documents)
+        this.setState({
+          uploading: false
+        })
+      })
     })
   }
 
@@ -29,7 +39,7 @@ class FileSelect extends Component {
       const reader  = new FileReader();
       reader.onload= (e)=>{
         this.data = e.target.result
-        let imgFileSize = Math.round((this.data.length)*3/4)
+        let imgFileSize = this.data.byteLength
         if(imgFileSize<25000000){
           const fileObj = {}    
           const date = new Date()
@@ -47,12 +57,11 @@ class FileSelect extends Component {
           fileObj.name = fileNameArray.slice(0,fileNameArray.length-1).join('.')
           fileObj.extension = fileNameArray[fileNameArray.length-1]
           this.file = fileObj
-          console.log(this.file)
           this.uploadDocument()
         }
       }
-      reader.readAsDataURL(file)
-      // reader.readAsBinaryString(file)
+      // reader.readAsDataURL(file)
+      reader.readAsArrayBuffer(file)
     }
   }
   
@@ -60,6 +69,7 @@ class FileSelect extends Component {
   render(){
     return (
       <div className="p-2">
+        {this.state.uploading? <Spinner/>:''}
         {/* <span style={{cursor: "pointer"}} className="fa fa-folder-open-o" aria-hidden="true"></span>
         <input style={{display:"none"}} type="file" className="form-control-file"  aria-describedby="imageFile" onChange={this.onFileSelect} id="document"></input> */}
           <button
