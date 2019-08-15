@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import FileSelect from './FileSelect'
-import Modal from './Modal'
+import FileModal from './FileModal'
+import PreviewModal from './PreviewModal'
 import Spinner from './Spinner'
 
 class MyDocuments extends Component {
@@ -12,9 +13,8 @@ class MyDocuments extends Component {
       capturedImageURL:'',
       isCaptured: false,
       fileName:'untitled.jpg',
-      data: '',
-      name:'',
       showEditModal: false,
+      showPreviewModal: false,
       loader: true
     }
     this.file = {}
@@ -37,25 +37,35 @@ class MyDocuments extends Component {
     })
   }
 
-  getDocument(currentDocument){
+  getDocument(currentDocument, isDownload){
     this.setState({
       loader: true
     })
     this.userSession.getFile('documents/'+currentDocument.fileId)
     .then((data)=> {
       if(data != null){
-        var a = document.createElement('a')
-        const blob = new Blob([data], {type: "octet/stream"}),
-        url = window.URL.createObjectURL(blob);
-        a.href = url;
-        a.download = currentDocument.name+'.'+currentDocument.extension;
-        a.click();
-        window.URL.revokeObjectURL(url);
-        this.setState({
-          loader: false
-        })
+        if(isDownload){
+          this.downloadFile(currentDocument, data)
+        } else {
+          this.file = currentDocument
+          this.file.data = data
+          this.setState({
+            loader: false,
+            showPreviewModal: true
+          })
+        }
       }
     })
+  }
+
+  downloadFile(currentDocument,data){
+    var a = document.createElement('a')
+    const blob = new Blob([data], {type: "octet/stream"}),
+    url = window.URL.createObjectURL(blob);
+    a.href = url;
+    a.download = currentDocument.name+'.'+currentDocument.extension;
+    a.click();
+    window.URL.revokeObjectURL(url);
   }
 
   deleteDocument(currentDocument){
@@ -81,17 +91,17 @@ class MyDocuments extends Component {
   documentList(){
     const documentHTMLList = this.state.documents.map((file) =>
       <tr key={file.date}>
-        <td className="text-truncate" style={{maxWidth: "100px"}} >
+        <td className="text-truncate" style={{maxWidth: "100px", cursor: "pointer"}} onClick={()=>this.getDocument(file, false)} >
           {`${file.name}.${file.extension}`}
         </td>
         <td className="text-truncate" style={{maxWidth: "80px"}}>{this.toShortFormat(file.date)}</td>
         <td>{file.size}</td>
         <td>
-          <span style={{cursor: "pointer"}} className="px-1 fa fa-download" onClick={()=>{this.getDocument(file)}}>
+          <span style={{cursor: "pointer"}} className="px-1 fa fa-download" onClick={()=>this.getDocument(file, true)}>
           </span>
-          <span style={{cursor: "pointer"}} className="px-1 fa fa-trash" onClick={()=>{this.deleteDocument(file)}}>
+          <span style={{cursor: "pointer"}} className="px-1 fa fa-trash" onClick={()=>this.deleteDocument(file)}>
           </span>
-          <span style={{cursor: "pointer"}} className="px-1 fa fa-edit" onClick={()=>{this.onRenameClick(file)}}>
+          <span style={{cursor: "pointer"}} className="px-1 fa fa-edit" onClick={()=>this.onRenameClick(file)}>
           </span>
         </td>
       </tr>
@@ -105,15 +115,25 @@ class MyDocuments extends Component {
 
   onRenameClick(file){
     this.file = file
-    this.setState({ showEditModal: true, name:file.name })
+    this.setState({
+      showEditModal: true
+    })
+    // const isDownload = false
+    // this.getDocument(file, isDownload)
   }
 
   onHideRename(){
     this.file = {}
-    this.setState({ showEditModal: false, name:''})
+    this.setState({ showEditModal: false})
+  }
+  
+  onHidePreview(){
+    this.file = {}
+    this.setState({ showPreviewModal: false})
   }
 
-  onSaveName(){
+  onSaveName(fileDetails){
+    this.file = fileDetails
     const documents = this.state.documents.map((document)=>{
       if(document.fileId===this.file.fileId){
         document.name=this.file.name
@@ -123,8 +143,7 @@ class MyDocuments extends Component {
     this.userSession.putFile('documents/index.json', JSON.stringify(documents))
     this.file = {}
     this.setState({
-      showEditModal: false, 
-      name:'',
+      showEditModal: false,
       documents
     })
   }
@@ -161,14 +180,10 @@ class MyDocuments extends Component {
               {this.documentList()}
             </tbody>
           </table>}
-          <Modal show={this.state.showEditModal} onSave={this.onSaveName.bind(this)} handleClose={this.onHideRename.bind(this)}>
-          <form>
-              <div className="form-group">
-                <label htmlFor="file-name" className="col-form-label">File Name:</label>
-                <input type="text" value={this.state.name} onChange={this.handleNameChange.bind(this)} className="form-control" id="file-name"/>
-              </div>
-          </form>
-          </Modal>
+          {this.state.showPreviewModal?
+          <PreviewModal fileDetails={this.file} handleClose={this.onHidePreview.bind(this)}/>:''}
+          {this.state.showEditModal?
+          <FileModal fileDetails={this.file} onSave={this.onSaveName.bind(this)} handleClose={this.onHideRename.bind(this)}/>:''}        
         </div>
     )
   }

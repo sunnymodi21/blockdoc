@@ -36,7 +36,7 @@ class FileSelect extends Component {
     const file =  e.target.files[0]
     console.log(file.name)
     if (/\.(jpe?g|png|pdf)$/i.test(file.name)) {
-      const reader  = new FileReader();
+      const reader  = new FileReader()
       reader.onload= (e)=>{
         this.data = e.target.result
         let imgFileSize = this.data.byteLength

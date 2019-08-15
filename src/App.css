@@ -2,7 +2,3 @@ body {
   padding-top: 4rem;
   background-color: rgb(241, 246, 249);
 }
-
-.btn-secondary:hover {
-  opacity: 0.5;
-}
