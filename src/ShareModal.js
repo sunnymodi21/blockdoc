@@ -3,7 +3,6 @@ import { encryptECIES } from 'blockstack/lib/encryption'
 import AsyncSelect from 'react-select/async'
 import sh from 'shorthash'
 import './Modal.css'
-//313536363636333337353730336d616b6b61727072616e61762e69642e626c6f636b737461636b
 
 class ShareModal extends Component {
   constructor(props){
@@ -80,6 +79,11 @@ class ShareModal extends Component {
   }
 
   onFriendSelect(selectedFriend){
+    this.setState({
+      nonUser: false,
+      copied: false,
+      link: ''
+    })
     this.username = selectedFriend.value.username
   }
 

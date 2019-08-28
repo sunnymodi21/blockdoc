@@ -25,7 +25,7 @@ class Landing extends Component {
           </h4>
           <button
               className="btn btn-lg btn-primary"
-              onClick={this.signIn.bind(this)}>Sign in with Blockstack
+              onClick={this.signIn.bind(this)}>Sign in/Sign Up with Blockstack
             </button>
         </div>
         <div className="overlay"></div>
