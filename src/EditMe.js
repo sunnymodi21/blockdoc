@@ -6,9 +6,11 @@ class EditMe extends Component {
     this.resetAccount = this.resetAccount.bind(this)
     this.userSession = this.props.userSession
   }
+
   resetAccount(){
-    this.userSession.deleteFile('documents/')
+    this.userSession.deleteFile('documents/index.json')
   }
+  
   render() {
 
     return (

@@ -1,73 +1,100 @@
 import React, { Component } from 'react'
-import { cameraConstraints } from './constants'
+import { decryptContent } from 'blockstack'
+import FileSelect from './FileSelect'
+import FileModal from './FileModal'
+import PreviewModal from './PreviewModal'
+import ShareModal from './ShareModal'
+import Spinner from './Spinner'
 
 class MyDocuments extends Component {
   constructor(props){
     super(props)
-    // this.getDocumentList()
     this.userSession = this.props.userSession
-    this.dataURL = ''
     this.state = {
       documents: [],
       capturedImageURL:'',
       isCaptured: false,
-      fileName:'untitled.jpg'
+      fileName:'untitled.jpg',
+      showEditModal: false,
+      showPreviewModal: false,
+      showShareModal: false,
+      loader: true
     }
-    this.capture = this.capture.bind(this)
-    this.cameraStart = this.cameraStart.bind(this)
+    this.file = {}
     this.getDocument = this.getDocument.bind(this)
-    this.uploadDocument = this.uploadDocument.bind(this)
-    this.cameraView = {}
-    this.track = {}
     this.getDocumentList()
   }
 
   getDocumentList(){
-    this.userSession.getFile('document/index.json')
+    this.userSession.getFile('documents/index.json')
     .then((data)=> {
       if(data != null){
         const documents = JSON.parse(data)
         console.log(documents)
         this.setState({
-          documents
+          documents,
+          loader: false
         })
-      }
-    })
-  }
-
-  getDocument(document){
-    document = this.state.documents[0]
-    this.userSession.getFile('document/'+document.fileId)
-    .then((data)=> {
-      if(data != null){
-        const fileData = data
+      } else {
         this.setState({
-          capturedImageURL: data
-        })
-        console.log(fileData)
+          loader: false
+        })        
       }
     })
   }
 
-  uploadDocument(){
-    this.userSession.getFile('document/index.json')
+  getDocument(currentDocument, isDownload){
+    this.setState({
+      loader: true
+    })
+    this.userSession.getFile('documents/'+currentDocument.fileId, { decrypt: false })
     .then((data)=> {
-      let documents = []
       if(data != null){
-        documents = JSON.parse(data)       
+        data = decryptContent(data, { privateKey: currentDocument.aesKey })   
+        if(isDownload){
+          this.downloadFile(currentDocument, data)
+          this.setState({
+            loader: false
+          })
+        } else {
+          this.file = currentDocument
+          this.file.data = data
+          this.setState({
+            loader: false,
+            showPreviewModal: true
+          })
+        }
       }
-      const date = new Date()
-      const timestamp = date.getTime()
-      documents.push({fileName: this.state.fileName, date, fileId: timestamp})
-      this.userSession.putFile('document/index.json', JSON.stringify(documents))
-      this.userSession.putFile('document/'+timestamp, this.dataURL) 
+    })
+  }
+
+  downloadFile(currentDocument,data){
+    var a = document.createElement('a')
+    const blob = new Blob([data], {type: "octet/stream"}),
+    url = window.URL.createObjectURL(blob)
+    a.href = url
+    a.download = currentDocument.name+'.'+currentDocument.extension
+    a.click()
+    window.URL.revokeObjectURL(url)
+  }
+
+  deleteDocument(currentDocument){
+   this.setState({
+    loader: true
+   })
+   const documents = this.state.documents.filter((document)=>{
+      return document.fileId===currentDocument.fileId ? false: true
+    })
+    this.userSession.deleteFile('documents/'+currentDocument.fileId).then(()=>{
+      this.userSession.putFile('documents/index.json', JSON.stringify(documents))
       this.setState({
+        loader: false,
         documents
       })
     })
   }
 
-  toShortFormat(date) {
+  toShortFormat(date){
     const dateObj = new Date(date)
     const month_names =["Jan","Feb","Mar",
                       "Apr","May","Jun",
@@ -77,60 +104,109 @@ class MyDocuments extends Component {
   }
 
   documentList(){
-    const documentList = this.state.documentList
-    const documentItemList =[]
-    documentList.forEach((expense, documentItem) =>
-    {
-      const shortdate = this.toShortFormat(documentItem.date)
-      documentItemList.push(<li>key={shortdate}>{shortdate}</li>)
-    })
-    return documentItemList
+    const documentHTMLList = this.state.documents.map((file) =>
+      <tr key={file.date}>
+        <td className="text-truncate" style={{maxWidth: "100px", cursor: "pointer"}} onClick={()=>this.getDocument(file, false)} >
+          {`${file.name}.${file.extension}`}
+        </td>
+        <td className="text-truncate" style={{maxWidth: "80px"}}>{this.toShortFormat(file.date)}</td>
+        <td>{file.size}</td>
+        <td>
+          <span style={{cursor: "pointer"}} className="px-1 fa fa-download" onClick={()=>this.getDocument(file, true)}>
+          </span>
+          <span style={{cursor: "pointer"}} className="px-1 fa fa-trash" onClick={()=>this.deleteDocument(file)}>
+          </span>
+          <span style={{cursor: "pointer"}} className="px-1 fa fa-edit" onClick={()=>this.onRenameClick(file)}>
+          </span>
+          <span style={{cursor: "pointer"}} className="px-1 fa fa-share-alt" onClick={()=>this.onShareClick(file)}>
+          </span>
+        </td>
+      </tr>
+    )
+    return documentHTMLList
+  }
+  
+  updateDocumentList(documents) {
+    this.setState({documents})
   }
 
-  cameraStart() {
+  onRenameClick(file){
+    this.file = file
     this.setState({
-      isCaptured: false
-    })
-    this.cameraView = document.querySelector("#camera--view")
-    navigator.mediaDevices
-    .getUserMedia(cameraConstraints)
-    .then((stream)=>{
-        this.track = stream.getTracks()[0]
-        this.cameraView.srcObject = stream
-    })
-    .catch(function(error) {
-        console.error("Oops. Something is broken.", error)
+      showEditModal: true
     })
   }
 
-  capture() {
-    const cameraSensor = document.querySelector("#camera--sensor")
-    cameraSensor.width = this.cameraView.videoWidth
-    cameraSensor.height = this.cameraView.videoHeight
-    const ctx = cameraSensor.getContext("2d")
-    ctx.filter = "grayscale(100%) contrast(100%)"
-    ctx.drawImage(this.cameraView, 0, 0)
-    this.dataURL = cameraSensor.toDataURL()
+  onShareClick(currentDocument){
+    this.file = currentDocument
     this.setState({
-      isCaptured: true
+      showShareModal: true
     })
-    this.track.stop()
+  }
+
+  onHideRename(){
+    this.file = {}
+    this.setState({ showEditModal: false})
+  }
+  
+  onHidePreview(){
+    this.file = {}
+    this.setState({ showPreviewModal: false})
+  }
+
+  onHideShare(){
+    this.file = {}
+    this.setState({ showShareModal: false})
+  }
+
+  onSaveName(fileDetails){
+    this.file = fileDetails
+    const documents = this.state.documents.map((document)=>{
+      if(document.fileId===this.file.fileId){
+        document.name=this.file.name
+      }
+      return document
+    })
+    this.userSession.putFile('documents/index.json', JSON.stringify(documents))
+    this.file = {}
+    this.setState({
+      showEditModal: false,
+      documents
+    })
   }
 
   render() {
+    const userSession = this.userSession
     return (
-      <div>
-        <h3>Documents</h3>
-        <button onClick={this.cameraStart}>Scan</button>
-        <canvas id="camera--sensor"></canvas>
-        <video hidden={this.state.isCaptured} id="camera--view" autoPlay playsInline></video>
-        <button onClick={this.capture}>Capture</button>
-        {/* <i className="fas fa-camera"></i> */}
-        <button onClick={this.uploadDocument}>Upload Document</button>
-        <button onClick={this.getDocument}>Get Document</button>
-        
-        <img src={this.state.capturedImageURL} alt="" id="camera--output"/>
-      </div>
+        <div className="col-md">
+          
+          {this.state.loader? <Spinner/>:''}
+          <FileSelect
+            updateDocumentList = {this.updateDocumentList.bind(this)}  
+            userSession={userSession}
+            documents={this.state.documents}
+          />
+          {this.state.documents.length===0? <p className="font-weight-light text-center">No files uploaded yet</p>: 
+          <table className="table">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Date</th>
+                <th scope="col">File Size</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {this.documentList()}
+            </tbody>
+          </table>}
+          {this.state.showPreviewModal?
+          <PreviewModal fileDetails={this.file} handleClose={this.onHidePreview.bind(this)}/>:''}   
+          {this.state.showEditModal?
+          <FileModal fileDetails={this.file} onSave={this.onSaveName.bind(this)} handleClose={this.onHideRename.bind(this)}/>:''}
+          {this.state.showShareModal?
+          <ShareModal documents={this.state.documents} userSession={this.userSession} fileDetails={this.file} handleClose={this.onHideShare.bind(this)}/>:''}               
+        </div>
     )
   }
 }

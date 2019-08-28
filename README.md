@@ -1,6 +1,6 @@
 ## BlockDoc
 
-A decentralized document scanner and vault using [Blockstack](https://blockstack.org)
+A decentralized document manager with private sharing using [Blockstack](https://blockstack.org)
 
 ### Setting up the project
 
