@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { makeECPrivateKey, getPublicKeyFromPrivate } from 'blockstack'
 import Spinner from './Spinner'
 const bytes = ['Bytes','KB', 'MB']
 
@@ -15,27 +16,22 @@ class FileSelect extends Component {
     this.setState({
       uploading: true
     })
-    this.userSession.getFile('documents/index.json')
-    .then((data)=> {
-      let documents = []
-      if(data != null){
-        documents = JSON.parse(data)       
-      }
-      documents.push(this.file)
-      this.userSession.putFile('documents/index.json', JSON.stringify(documents))
-      this.userSession.putFile(`documents/${this.file.fileId}`, this.data).then((res)=>{
-        this.props.updateDocumentList(documents)
-        this.setState({
-          uploading: false
-        })
+    let documents = this.documents
+    this.file.aesKey =  makeECPrivateKey()
+    documents.push(this.file)
+    this.userSession.putFile('documents/index.json', JSON.stringify(documents))
+    this.userSession.putFile(`documents/${this.file.fileId}`, this.data, {encrypt: getPublicKeyFromPrivate(this.file.aesKey)})
+    .then((res)=>{
+      this.props.updateDocumentList(documents)
+      this.setState({
+        uploading: false
       })
     })
   }
 
   onFileSelect(e){
     const file =  e.target.files[0]
-    console.log(file.name)
-    if (/\.(jpe?g|png|pdf)$/i.test(file.name)) {
+    if (file!==undefined && /\.(jpe?g|png|pdf)$/i.test(file.name)) {
       const reader  = new FileReader()
       reader.onload= (e)=>{
         this.data = e.target.result
@@ -56,6 +52,7 @@ class FileSelect extends Component {
           
           fileObj.name = fileNameArray.slice(0,fileNameArray.length-1).join('.')
           fileObj.extension = fileNameArray[fileNameArray.length-1]
+          fileObj.shareList = []
           this.file = fileObj
           this.uploadDocument()
         }
@@ -67,6 +64,7 @@ class FileSelect extends Component {
   
 
   render(){
+    this.documents = this.props.documents
     return (
       <div className="p-2">
         {this.state.uploading? <Spinner/>:''}

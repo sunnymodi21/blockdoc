@@ -21,7 +21,7 @@ class Landing extends Component {
         <div className="container text-center my-auto">
           <h1 className="mb-1 text-white">Blockdoc</h1>
           <h4 className="mb-4 text-white">
-            <em>Decentralized secure documents storage and PDF editor</em>
+            <em>Decentralized secure documents manager with private sharing</em>
           </h4>
           <button
               className="btn btn-lg btn-primary"

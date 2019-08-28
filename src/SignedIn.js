@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
 import { Switch, Route, Redirect } from 'react-router-dom'
-import { UserSession } from 'blockstack'
+import { UserSession, getPublicKeyFromPrivate } from 'blockstack'
 // import EditMe from './EditMe'
 import MyDocuments from './MyDocuments'
 import NavBar from './NavBar'
+import Preview from './Preview'
 import { appConfig } from './constants'
 import './SignedIn.css'
 
@@ -14,12 +15,19 @@ class SignedIn extends Component {
     super(props)
     this.userSession = new UserSession({ appConfig })
     this.signOut = this.signOut.bind(this)
+    this.addPublicKey()
   }
 
   signOut(e) {
     e.preventDefault()
     this.userSession.signUserOut()
     window.location = '/'
+  }
+  
+  addPublicKey() {
+    const userData = this.userSession.loadUserData()
+    const publicKey = getPublicKeyFromPrivate(userData.appPrivateKey)
+    this.userSession.putFile('key.json', JSON.stringify(publicKey),{ encrypt: false })
   }
 
   render() {
@@ -31,13 +39,23 @@ class SignedIn extends Component {
     }
 
     return (
-      <div className="row">
+      <div className="row" style={{ paddingTop: "4rem"}}>
       <NavBar signOut={this.signOut}/>
       <Switch>
         <Route
           path={`/mydocuments`}
           render={
             routeProps => <MyDocuments
+            protocol={window.location.protocol}
+            userSession={userSession}
+            realm={window.location.origin.split('//')[1]}
+            {...routeProps} />
+          }
+        />
+        <Route 
+          path="/doc/:id/:fileCode"
+          render={
+            routeProps => <Preview
             protocol={window.location.protocol}
             userSession={userSession}
             realm={window.location.origin.split('//')[1]}

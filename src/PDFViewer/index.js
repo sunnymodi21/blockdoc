@@ -14,7 +14,6 @@ class PDFViewer extends Component {
     const pdf_data = this.props.file.data
     let loadingTask = PdfJs.getDocument(pdf_data);
     loadingTask.promise.then((pdf)=>{
-      console.log(pdf);
       this.props.onDocumentLoadSuccess(pdf)
       this.setState({ pdf });
     });

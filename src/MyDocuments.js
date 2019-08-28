@@ -1,7 +1,9 @@
 import React, { Component } from 'react'
+import { decryptContent } from 'blockstack'
 import FileSelect from './FileSelect'
 import FileModal from './FileModal'
 import PreviewModal from './PreviewModal'
+import ShareModal from './ShareModal'
 import Spinner from './Spinner'
 
 class MyDocuments extends Component {
@@ -15,6 +17,7 @@ class MyDocuments extends Component {
       fileName:'untitled.jpg',
       showEditModal: false,
       showPreviewModal: false,
+      showShareModal: false,
       loader: true
     }
     this.file = {}
@@ -25,7 +28,6 @@ class MyDocuments extends Component {
   getDocumentList(){
     this.userSession.getFile('documents/index.json')
     .then((data)=> {
-      console.log(data)
       if(data != null){
         const documents = JSON.parse(data)
         console.log(documents)
@@ -33,6 +35,10 @@ class MyDocuments extends Component {
           documents,
           loader: false
         })
+      } else {
+        this.setState({
+          loader: false
+        })        
       }
     })
   }
@@ -41,11 +47,15 @@ class MyDocuments extends Component {
     this.setState({
       loader: true
     })
-    this.userSession.getFile('documents/'+currentDocument.fileId)
+    this.userSession.getFile('documents/'+currentDocument.fileId, { decrypt: false })
     .then((data)=> {
       if(data != null){
+        data = decryptContent(data, { privateKey: currentDocument.aesKey })   
         if(isDownload){
           this.downloadFile(currentDocument, data)
+          this.setState({
+            loader: false
+          })
         } else {
           this.file = currentDocument
           this.file.data = data
@@ -61,21 +71,26 @@ class MyDocuments extends Component {
   downloadFile(currentDocument,data){
     var a = document.createElement('a')
     const blob = new Blob([data], {type: "octet/stream"}),
-    url = window.URL.createObjectURL(blob);
-    a.href = url;
-    a.download = currentDocument.name+'.'+currentDocument.extension;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    url = window.URL.createObjectURL(blob)
+    a.href = url
+    a.download = currentDocument.name+'.'+currentDocument.extension
+    a.click()
+    window.URL.revokeObjectURL(url)
   }
 
   deleteDocument(currentDocument){
+   this.setState({
+    loader: true
+   })
    const documents = this.state.documents.filter((document)=>{
       return document.fileId===currentDocument.fileId ? false: true
     })
-    this.userSession.putFile('documents/index.json', JSON.stringify(documents))
-    this.userSession.deleteFile('documents/'+currentDocument.fileId)
-    this.setState({
-      documents
+    this.userSession.deleteFile('documents/'+currentDocument.fileId).then(()=>{
+      this.userSession.putFile('documents/index.json', JSON.stringify(documents))
+      this.setState({
+        loader: false,
+        documents
+      })
     })
   }
 
@@ -103,9 +118,11 @@ class MyDocuments extends Component {
           </span>
           <span style={{cursor: "pointer"}} className="px-1 fa fa-edit" onClick={()=>this.onRenameClick(file)}>
           </span>
+          <span style={{cursor: "pointer"}} className="px-1 fa fa-share-alt" onClick={()=>this.onShareClick(file)}>
+          </span>
         </td>
       </tr>
-    );
+    )
     return documentHTMLList
   }
   
@@ -118,8 +135,13 @@ class MyDocuments extends Component {
     this.setState({
       showEditModal: true
     })
-    // const isDownload = false
-    // this.getDocument(file, isDownload)
+  }
+
+  onShareClick(currentDocument){
+    this.file = currentDocument
+    this.setState({
+      showShareModal: true
+    })
   }
 
   onHideRename(){
@@ -130,6 +152,11 @@ class MyDocuments extends Component {
   onHidePreview(){
     this.file = {}
     this.setState({ showPreviewModal: false})
+  }
+
+  onHideShare(){
+    this.file = {}
+    this.setState({ showShareModal: false})
   }
 
   onSaveName(fileDetails){
@@ -148,14 +175,6 @@ class MyDocuments extends Component {
     })
   }
 
-  handleNameChange(e){
-    const name = e.target.value
-    this.file.name = name
-    this.setState({
-      name
-    })
-  }
-
   render() {
     const userSession = this.userSession
     return (
@@ -165,6 +184,7 @@ class MyDocuments extends Component {
           <FileSelect
             updateDocumentList = {this.updateDocumentList.bind(this)}  
             userSession={userSession}
+            documents={this.state.documents}
           />
           {this.state.documents.length===0? <p className="font-weight-light text-center">No files uploaded yet</p>: 
           <table className="table">
@@ -181,9 +201,11 @@ class MyDocuments extends Component {
             </tbody>
           </table>}
           {this.state.showPreviewModal?
-          <PreviewModal fileDetails={this.file} handleClose={this.onHidePreview.bind(this)}/>:''}
+          <PreviewModal fileDetails={this.file} handleClose={this.onHidePreview.bind(this)}/>:''}   
           {this.state.showEditModal?
-          <FileModal fileDetails={this.file} onSave={this.onSaveName.bind(this)} handleClose={this.onHideRename.bind(this)}/>:''}        
+          <FileModal fileDetails={this.file} onSave={this.onSaveName.bind(this)} handleClose={this.onHideRename.bind(this)}/>:''}
+          {this.state.showShareModal?
+          <ShareModal documents={this.state.documents} userSession={this.userSession} fileDetails={this.file} handleClose={this.onHideShare.bind(this)}/>:''}               
         </div>
     )
   }

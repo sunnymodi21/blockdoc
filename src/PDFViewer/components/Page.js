@@ -57,7 +57,6 @@ class Page extends Component {
     let { width, height } = viewport;
     let canvas = this.canvas;
     let context = canvas.getContext('2d');
-    console.log(viewport.height, viewport.width);
     canvas.width = width;
     canvas.height = height;
 
