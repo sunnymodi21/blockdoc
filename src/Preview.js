@@ -22,15 +22,22 @@ class Preview extends Component {
     const { id, fileCode } = this.props.match.params
     this.userSession.getFile(`filedetails/${fileCode}`, { decrypt: false, username: id }).then((data)=>{
         let decryptedContent = ''
-        try{
-          decryptedContent = decryptContent(data, { privateKey: this.userData.appPrivateKey })          
-          this.file = JSON.parse(decryptedContent)
-          this.getDocument(this.file, id, false)
-        } 
-        catch{
+        if(data===null){
           alert('You do not have access to this file')
-          this.onHidePreview()
+        } else{
+            try{
+              decryptedContent = decryptContent(data, { privateKey: this.userData.appPrivateKey })          
+              this.file = JSON.parse(decryptedContent)
+              this.getDocument(this.file, id, false)
+            } 
+            catch{
+              this.onHidePreview()
+            }
         }
+    })
+    .catch(()=>{
+      alert('Invalid URL')
+      this.onHidePreview()
     })
   }
 

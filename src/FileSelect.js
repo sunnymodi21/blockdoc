@@ -73,7 +73,7 @@ class FileSelect extends Component {
           <button
             className="btn btn-primary"
             onClick={()=>document.getElementById("file").click()}
-            >Upload File
+            >Upload PDF/Image File
           </button>
           <input 
             style={{display:"none"}} 

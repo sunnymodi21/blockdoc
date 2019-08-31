@@ -63,7 +63,7 @@ class ShareModal extends Component {
           
         }
       })
-      .catch((err)=>{
+      .catch(()=>{
         this.setState({
           nonUser: true
         })
@@ -84,7 +84,7 @@ class ShareModal extends Component {
       copied: false,
       link: ''
     })
-    this.username = selectedFriend.value.username
+    this.username = selectedFriend.value.fullyQualifiedName
   }
 
   copyLink(){
@@ -134,7 +134,7 @@ class ShareModal extends Component {
               Copied!
             </div>: ''}
             {this.state.nonUser?<div className="alert alert-danger col-sm-10" role="alert">
-              User hasn't signed up on BlockDoc / Invalid name or subdomain
+              User hasn't signed up on BlockDoc
             </div>: ''}
             </form>
           </div>
