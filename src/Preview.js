@@ -82,7 +82,7 @@ class Preview extends Component {
         return (
             <div className="col-md">
               {this.state.loader? <Spinner/>:''}
-              <PreviewModal fileDetails={this.file} handleClose={this.onHidePreview}/>   
+              <PreviewModal fileDetails={this.file} handleClose={this.onHidePreview}/>
             </div>
         )
     } else {

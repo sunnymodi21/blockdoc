@@ -40,7 +40,6 @@ class ShareModal extends Component {
         if(publicKey !== null){
           const file = {...this.file}
           const encryptedData = encryptECIES(publicKey, JSON.stringify(file))
-          console.log(publicKey)
           this.userSession.putFile(`filedetails/${hash}`, JSON.stringify(encryptedData), { encrypt: false })
           this.documents.find((document)=>{
             if(document.fileId===this.file.fileId){
@@ -129,6 +128,7 @@ class ShareModal extends Component {
                     </div>
                   </div>
                 </div>
+                <small className="form-text text-muted col-sm-12">Share this URL with the user</small>
               </div>:''}
             {this.state.copied?<div className="alert alert-success col-sm-12" role="alert">
               Copied!

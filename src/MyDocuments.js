@@ -5,6 +5,7 @@ import FileModal from './FileModal'
 import PreviewModal from './PreviewModal'
 import ShareModal from './ShareModal'
 import Spinner from './Spinner'
+import './MyDocuments.css'
 
 class MyDocuments extends Component {
   constructor(props){
@@ -30,7 +31,6 @@ class MyDocuments extends Component {
     .then((data)=> {
       if(data != null){
         const documents = JSON.parse(data)
-        console.log(documents)
         this.setState({
           documents,
           loader: false
@@ -106,19 +106,19 @@ class MyDocuments extends Component {
   documentList(){
     const documentHTMLList = this.state.documents.map((file) =>
       <tr key={file.date}>
-        <td className="text-truncate" style={{maxWidth: "100px", cursor: "pointer"}} onClick={()=>this.getDocument(file, false)} >
+        <td className="text-truncate cursor-pointer" style={{maxWidth: "100px"}} onClick={()=>this.getDocument(file, false)} >
           {`${file.name}.${file.extension}`}
         </td>
         <td className="text-truncate" style={{maxWidth: "80px"}}>{this.toShortFormat(file.date)}</td>
         <td>{file.size}</td>
         <td>
-          <span style={{cursor: "pointer"}} className="px-1 fa fa-download" onClick={()=>this.getDocument(file, true)}>
+          <span title="Download" className="px-1 fa fa-download cursor-pointer" onClick={()=>this.getDocument(file, true)}>
           </span>
-          <span style={{cursor: "pointer"}} className="px-1 fa fa-trash" onClick={()=>this.deleteDocument(file)}>
+          <span title="Delete" className="px-1 fa fa-trash cursor-pointer" onClick={()=>this.deleteDocument(file)}>
           </span>
-          <span style={{cursor: "pointer"}} className="px-1 fa fa-edit" onClick={()=>this.onRenameClick(file)}>
+          <span title="Rename" className="px-1 fa fa-edit cursor-pointer" onClick={()=>this.onRenameClick(file)}>
           </span>
-          <span style={{cursor: "pointer"}} className="px-1 fa fa-share-alt" onClick={()=>this.onShareClick(file)}>
+          <span title="Share" className="px-1 fa fa-share-alt cursor-pointer" onClick={()=>this.onShareClick(file)}>
           </span>
         </td>
       </tr>
@@ -179,7 +179,6 @@ class MyDocuments extends Component {
     const userSession = this.userSession
     return (
         <div className="col-md">
-          
           {this.state.loader? <Spinner/>:''}
           <FileSelect
             updateDocumentList = {this.updateDocumentList.bind(this)}  
@@ -187,7 +186,7 @@ class MyDocuments extends Component {
             documents={this.state.documents}
           />
           {this.state.documents.length===0? <p className="font-weight-light text-center">No files uploaded yet</p>: 
-          <table className="table">
+          <table className="table table-hover">
             <thead>
               <tr>
                 <th scope="col">Name</th>

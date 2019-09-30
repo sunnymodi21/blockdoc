@@ -28,7 +28,10 @@ class Landing extends Component {
               onClick={this.signIn.bind(this)}>Sign in/Sign Up with Blockstack
             </button>
         </div>
-        <div className="overlay"></div>
+        <a style={{paddingTop:'300px', position:"absolute"}} href="https://www.producthunt.com/posts/blockdoc?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-blockdoc" rel="noopener noreferrer" target="_blank">
+          <img alt="ProductHunt" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=166321&theme=dark"
+          style={{width: '250px', height: '54px'}} width="250px" height="54px" />
+        </a>
       </div>
     );
   }

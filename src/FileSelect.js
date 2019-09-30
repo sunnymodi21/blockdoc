@@ -31,7 +31,7 @@ class FileSelect extends Component {
 
   onFileSelect(e){
     const file =  e.target.files[0]
-    if (file!==undefined && /\.(jpe?g|png|pdf)$/i.test(file.name)) {
+    if (file!==undefined && /\.(jpe?g|png|pdf|docx?)$/i.test(file.name)) {
       const reader  = new FileReader()
       reader.onload= (e)=>{
         this.data = e.target.result
