@@ -40,7 +40,6 @@ class ShareModal extends Component {
         if(publicKey !== null){
           const file = {...this.file}
           const encryptedData = encryptECIES(publicKey, JSON.stringify(file))
-          console.log(publicKey)
           this.userSession.putFile(`filedetails/${hash}`, JSON.stringify(encryptedData), { encrypt: false })
           this.documents.find((document)=>{
             if(document.fileId===this.file.fileId){
@@ -72,7 +71,7 @@ class ShareModal extends Component {
   }
   
   promiseOptions(inputValue){
-    return fetch(`https://core.blockstack.org/v1/search?query=${inputValue}`)
+    return fetch(`https://core.blockstack.org/v1/search?query=${encodeURIComponent(inputValue)}`)
     .then(response => response.json().then((data)=> {
       return (data.results.map((value) => ({label:value.username, value: value})))
     }))
@@ -116,6 +115,7 @@ class ShareModal extends Component {
                       onChange = {this.onFriendSelect}
                   />
                 </div>
+                <small className="form-text text-muted col-sm-12">Search Blockstack users</small>
               </div>
             {this.state.link!==''? 
               <div className="form-group row">
@@ -129,6 +129,7 @@ class ShareModal extends Component {
                     </div>
                   </div>
                 </div>
+                <small className="form-text text-muted col-sm-12">Share this URL with the user</small>
               </div>:''}
             {this.state.copied?<div className="alert alert-success col-sm-12" role="alert">
               Copied!
