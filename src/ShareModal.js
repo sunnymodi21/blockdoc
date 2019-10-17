@@ -71,7 +71,7 @@ class ShareModal extends Component {
   }
   
   promiseOptions(inputValue){
-    return fetch(`https://core.blockstack.org/v1/search?query=${inputValue}`)
+    return fetch(`https://core.blockstack.org/v1/search?query=${encodeURIComponent(inputValue)}`)
     .then(response => response.json().then((data)=> {
       return (data.results.map((value) => ({label:value.username, value: value})))
     }))
@@ -115,6 +115,7 @@ class ShareModal extends Component {
                       onChange = {this.onFriendSelect}
                   />
                 </div>
+                <small className="form-text text-muted col-sm-12">Search Blockstack users</small>
               </div>
             {this.state.link!==''? 
               <div className="form-group row">

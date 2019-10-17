@@ -42,8 +42,11 @@ class PreviewModal extends Component {
             })
           })
           .done();
-        }
-        else {
+        } else if(file.extension==='pptx' || file.extension==='ppt') {
+          this.setState({
+            fileComponent: <div className="bg-light" style={{height: '100px'}}>Preview support for ppt/pptx coming soon</div>
+          })
+        } else {
             const myArray = file.data; //= your data in a UInt8Array
             const blob = new Blob([myArray], {'type': 'image/'+file.extension});
             const url = URL.createObjectURL(blob);
@@ -71,7 +74,7 @@ class PreviewModal extends Component {
                     {/* <div className="pl-2 pt-1">
                         <button type="button" className="btn btn-secondary" onClick={this.handleNext.bind(this)}>Next</button>                         
                     </div> */}
-                    <div className="pl-5 pt-2 text-white">{file.name}</div>
+                    <div className="pl-5 pt-2 text-white">{file.name}.{file.extension}</div>
                     <div>              
                         <button type="button" className="close pr-3 text-white" onClick={this.props.handleClose} aria-label="Close">
                             <span aria-hidden="true">&times;</span>

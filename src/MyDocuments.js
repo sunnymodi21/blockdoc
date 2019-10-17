@@ -5,7 +5,11 @@ import FileModal from './FileModal'
 import PreviewModal from './PreviewModal'
 import ShareModal from './ShareModal'
 import Spinner from './Spinner'
+import FolderAnimation from './FolderAnimation'
+import sh from 'shorthash'
+import { makeECPrivateKey, getPublicKeyFromPrivate } from 'blockstack'
 import './MyDocuments.css'
+const bytes = ['Bytes','KB', 'MB']
 
 class MyDocuments extends Component {
   constructor(props){
@@ -19,10 +23,14 @@ class MyDocuments extends Component {
       showEditModal: false,
       showPreviewModal: false,
       showShareModal: false,
-      loader: true
+      loader: true,
+      dragOver: false
     }
+    this.uploading = false
     this.file = {}
     this.getDocument = this.getDocument.bind(this)
+    this.uploadDocument = this.uploadDocument.bind(this)
+    this.processFiles = this.processFiles.bind(this);
     this.getDocumentList()
   }
 
@@ -40,6 +48,21 @@ class MyDocuments extends Component {
           loader: false
         })        
       }
+    })
+  }
+
+  uploadDocument(fileData, fileDetails){
+    let documents = this.state.documents
+    fileDetails.aesKey =  makeECPrivateKey()
+    documents.push(fileDetails)
+    this.userSession.putFile('documents/index.json', JSON.stringify(documents))
+    this.userSession.putFile(`documents/${fileDetails.fileId}`, fileData, {encrypt: getPublicKeyFromPrivate(fileDetails.aesKey)})
+    .then(()=>{
+      this.updateDocumentList(documents)
+      this.uploading = false
+      this.setState({
+        loader: false
+      })
     })
   }
 
@@ -175,16 +198,94 @@ class MyDocuments extends Component {
     })
   }
 
+  dragOverHandler(ev) {
+    ev.preventDefault();
+    if(!this.state.dragOver){
+      this.setState({
+        dragOver: true
+      })
+    }
+  }
+
+  dragOverLeaveHandler(ev) {
+    ev.preventDefault();
+    if(ev.target.className==='modal' && this.state.dragOver){
+      this.setState({
+        dragOver: false
+      })
+    }
+  }
+
+  dropHandler(e){
+    console.log('File(s) droppped'); 
+    e.preventDefault()
+    this.setState({
+      dragOver: false
+    })
+    let length = e.dataTransfer.items.length
+    this.filesRemaining = length
+    let files = []
+    for(let i = 0; i < 1; i++){
+      let entry = e.dataTransfer.items[i].webkitGetAsEntry()
+      if(entry.isFile){
+        console.log('... file[' + i + '].name = ' + e.dataTransfer.files[i].name)  
+        files.push(e.dataTransfer.files[i])    
+      } else if (entry.isDirectory){
+        console.log('... folder[' + i + '].name = ' + e.dataTransfer.files[i].name)
+      }
+    }
+    this.processFiles(files)
+  }
+
+  processFiles(files){
+      let file = files[0]
+      this.setState({
+        loader: true
+      })
+      if (file!==undefined && /\.(jpe?g|png|pdf|docx?|pptx?)$/i.test(file.name)) {
+        const reader  = new FileReader()
+        this.uploading = true
+        reader.onload= (e)=>{
+          let data = e.target.result
+          let imgFileSize = data.byteLength
+          if(imgFileSize<25000000){
+            const fileObj = {}    
+            const date = new Date()
+            fileObj.date = date
+            const timestamp = date.getTime()
+            fileObj.fileId = timestamp+sh.unique(file.name)
+            let count = 0
+            while(imgFileSize>1000){
+              imgFileSize = imgFileSize/1000
+              count +=1
+            }
+            fileObj.size = Math.floor(imgFileSize).toString()+' '+bytes[count]
+            const fileNameArray = file.name.split(".")
+            
+            fileObj.name = fileNameArray.slice(0,fileNameArray.length-1).join('.')
+            fileObj.extension = fileNameArray[fileNameArray.length-1]
+            fileObj.shareList = []
+            this.uploadDocument(data, fileObj)
+          } 
+        }
+        // reader.readAsDataURL(file)
+        reader.readAsArrayBuffer(file)
+      }
+  }
+
   render() {
     const userSession = this.userSession
     return (
-        <div className="col-md">
+        <div className="col-md" onDrop={this.dropHandler.bind(this)} onDragOver={this.dragOverHandler.bind(this)} onDragLeave={this.dragOverLeaveHandler.bind(this)}>
           {this.state.loader? <Spinner/>:''}
+          {this.state.dragOver? <FolderAnimation/>:''}
           <FileSelect
-            updateDocumentList = {this.updateDocumentList.bind(this)}  
+            uploadDocument = {this.uploadDocument}  
             userSession={userSession}
-            documents={this.state.documents}
+            processFiles = {this.processFiles}
           />
+          <small className="text-muted pl-2">Supported files types .jpeg, .jpg, .png, .pdf, .doc, .docx, .ppt, .pptx upto 25MB.</small><br></br>
+          <small className="text-muted pl-2">Drag and drop currently supports only one file at a time.</small>
           {this.state.documents.length===0? <p className="font-weight-light text-center">No files uploaded yet</p>: 
           <table className="table table-hover">
             <thead>
