@@ -15,7 +15,8 @@ class ShareModal extends Component {
       username: '',
       link: '',
       copied: false,
-      nonUser: false 
+      nonUser: false,
+      sharing: false 
     }
     this.documents = this.props.documents
     this.file = this.props.fileDetails
@@ -24,13 +25,17 @@ class ShareModal extends Component {
   }
 
   shareDocument(){
+    this.setState({
+      sharing: true
+    })
     const username = this.username
     const shareSet = new Set(this.file.shareList)
     const hash = sh.unique(this.file.fileId+username)
     const link = `${window.location.origin}/doc/${this.userData.username}/${hash}`
     if(shareSet.has(username)){
       this.setState({
-        link
+        link,
+        sharing: false
       })
     } else {
       this.userSession.getFile('key.json', {
@@ -52,19 +57,22 @@ class ShareModal extends Component {
           })
           this.userSession.putFile('documents/index.json', JSON.stringify(this.documents)).then(()=>{
             this.setState({
-              link
+              link,
+              sharing: false
             })
           })
         } else{
           this.setState({
-            nonUser: true
+            nonUser: true,
+            sharing: false
           })
           
         }
       })
       .catch(()=>{
         this.setState({
-          nonUser: true
+          nonUser: true,
+          sharing: false
         })
       }) 
     }
@@ -95,7 +103,7 @@ class ShareModal extends Component {
 
   render() {
     return (
-
+      
       <div className="modal" style={{display: "block"}}>
       <div className="modal-dialog" role="document">
         <div className="modal-content">
@@ -117,6 +125,11 @@ class ShareModal extends Component {
                 </div>
                 <small className="form-text text-muted col-sm-12">Search Blockstack users</small>
               </div>
+            {this.state.sharing? <div className="d-flex justify-content-center">
+                    <span className="spinner-border text-primary" role="status">
+                        <span className="sr-only">Loading...</span>
+                    </span>
+                </div>:''}
             {this.state.link!==''? 
               <div className="form-group row">
                 <div className="input-group col-sm-12">

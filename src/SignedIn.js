@@ -32,16 +32,12 @@ class SignedIn extends Component {
 
   render() {
     const userSession = this.userSession
-    if(window.location.pathname === '/') {
-      return (
-        <Redirect to={`/mydocuments`} />
-      )
-    }
 
     return (
       <div className="row" style={{ paddingTop: "4rem"}}>
       <NavBar signOut={this.signOut}/>
       <Switch>
+        <Redirect exact from={`/`} to={`/mydocuments`} />
         <Route
           path={`/mydocuments`}
           render={

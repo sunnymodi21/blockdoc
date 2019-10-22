@@ -13,7 +13,7 @@ class PreviewModal extends Component {
   }
 
   componentDidMount(){
-    this.previewFileHTML(this.props.fileDetails)
+    this.previewFileHTML(this.props.fileDetails, this.props.fileData)
   }
 
   onDocumentLoadSuccess ({ numPages }){
@@ -22,18 +22,18 @@ class PreviewModal extends Component {
     })
   }
 
-  previewFileHTML(file){
+  previewFileHTML(file, fileData){
     if(file.extension !== undefined){
         if(file.extension==='pdf'){
             this.setState({
               fileComponent:
               <PDFViewer 
-                file={{data:file.data}} 
+                file={{data:fileData}} 
                 onDocumentLoadSuccess={this.onDocumentLoadSuccess.bind(this)}
               />
             })
         } else if(file.extension==='docx' || file.extension==='doc'){          
-          mammoth.convertToHtml({arrayBuffer: file.data})
+          mammoth.convertToHtml({arrayBuffer: fileData})
           .then((result)=>{
             // this.setState({loaded: true})
             this.setState({
@@ -47,7 +47,7 @@ class PreviewModal extends Component {
             fileComponent: <div className="bg-light" style={{height: '100px'}}>Preview support for ppt/pptx coming soon</div>
           })
         } else {
-            const myArray = file.data; //= your data in a UInt8Array
+            const myArray = fileData; //= your data in a UInt8Array
             const blob = new Blob([myArray], {'type': 'image/'+file.extension});
             const url = URL.createObjectURL(blob);
             this.setState({

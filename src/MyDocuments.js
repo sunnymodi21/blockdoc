@@ -38,7 +38,7 @@ class MyDocuments extends Component {
     this.userSession.getFile('documents/index.json')
     .then((data)=> {
       if(data != null){
-        const documents = JSON.parse(data)
+        let documents = JSON.parse(data)
         this.setState({
           documents,
           loader: false
@@ -52,7 +52,10 @@ class MyDocuments extends Component {
   }
 
   uploadDocument(fileData, fileDetails){
-    let documents = this.state.documents
+    let documents = this.state.documents.map((doc)=>{
+      doc.data = ""
+      return doc
+    })
     fileDetails.aesKey =  makeECPrivateKey()
     documents.push(fileDetails)
     this.userSession.putFile('documents/index.json', JSON.stringify(documents))
@@ -81,7 +84,7 @@ class MyDocuments extends Component {
           })
         } else {
           this.file = currentDocument
-          this.file.data = data
+          this.fileData = data
           this.setState({
             loader: false,
             showPreviewModal: true
@@ -169,16 +172,19 @@ class MyDocuments extends Component {
 
   onHideRename(){
     this.file = {}
+    this.fileData = {}
     this.setState({ showEditModal: false})
   }
   
   onHidePreview(){
     this.file = {}
+    this.fileData = {}
     this.setState({ showPreviewModal: false})
   }
 
   onHideShare(){
     this.file = {}
+    this.fileData = {}
     this.setState({ showShareModal: false})
   }
 
@@ -239,10 +245,10 @@ class MyDocuments extends Component {
 
   processFiles(files){
       let file = files[0]
-      this.setState({
-        loader: true
-      })
       if (file!==undefined && /\.(jpe?g|png|pdf|docx?|pptx?)$/i.test(file.name)) {
+        this.setState({
+          loader: true
+        })
         const reader  = new FileReader()
         this.uploading = true
         reader.onload= (e)=>{
@@ -301,7 +307,7 @@ class MyDocuments extends Component {
             </tbody>
           </table>}
           {this.state.showPreviewModal?
-          <PreviewModal fileDetails={this.file} handleClose={this.onHidePreview.bind(this)}/>:''}   
+          <PreviewModal fileDetails={this.file} fileData={this.fileData} handleClose={this.onHidePreview.bind(this)}/>:''}   
           {this.state.showEditModal?
           <FileModal fileDetails={this.file} onSave={this.onSaveName.bind(this)} handleClose={this.onHideRename.bind(this)}/>:''}
           {this.state.showShareModal?

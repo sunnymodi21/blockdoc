@@ -53,7 +53,7 @@ class Preview extends Component {
           })
         } else {
           this.file = currentDocument
-          this.file.data = data
+          this.fileData = data
           this.setState({
             loader: false,
             showPreviewModal: true
@@ -81,8 +81,8 @@ class Preview extends Component {
     if(this.file!=={}){
         return (
             <div className="col-md">
-              {this.state.loader? <Spinner/>:''}
-              <PreviewModal fileDetails={this.file} handleClose={this.onHidePreview}/>
+              {this.state.loader? <Spinner/>:
+              <PreviewModal fileDetails={this.file} fileData={this.fileData} handleClose={this.onHidePreview}/>}
             </div>
         )
     } else {
