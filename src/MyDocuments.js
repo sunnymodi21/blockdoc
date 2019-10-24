@@ -26,11 +26,10 @@ class MyDocuments extends Component {
       loader: true,
       dragOver: false
     }
-    this.uploading = false
     this.file = {}
     this.getDocument = this.getDocument.bind(this)
     this.uploadDocument = this.uploadDocument.bind(this)
-    this.processFiles = this.processFiles.bind(this);
+    this.processFiles = this.processFiles.bind(this)
     this.getDocumentList()
   }
 
@@ -58,13 +57,16 @@ class MyDocuments extends Component {
     })
     fileDetails.aesKey =  makeECPrivateKey()
     documents.push(fileDetails)
+    this.uploadFile(fileData, fileDetails, documents)
+  }
+
+  uploadFile(fileData, fileDetails, documents){
     this.userSession.putFile('documents/index.json', JSON.stringify(documents))
     this.userSession.putFile(`documents/${fileDetails.fileId}`, fileData, {encrypt: getPublicKeyFromPrivate(fileDetails.aesKey)})
     .then(()=>{
-      this.updateDocumentList(documents)
-      this.uploading = false
       this.setState({
-        loader: false
+        loader: false,
+        documents
       })
     })
   }
@@ -111,11 +113,16 @@ class MyDocuments extends Component {
    const documents = this.state.documents.filter((document)=>{
       return document.fileId===currentDocument.fileId ? false: true
     })
-    this.userSession.deleteFile('documents/'+currentDocument.fileId).then(()=>{
-      this.userSession.putFile('documents/index.json', JSON.stringify(documents))
+    this.userSession.deleteFile('documents/'+currentDocument.fileId)
+    this.userSession.putFile('documents/index.json', JSON.stringify(documents)).then(()=>{
       this.setState({
         loader: false,
         documents
+      })
+    })
+    .catch(()=>{
+      this.setState({
+        loader: false
       })
     })
   }
@@ -151,10 +158,6 @@ class MyDocuments extends Component {
     )
     return documentHTMLList
   }
-  
-  updateDocumentList(documents) {
-    this.setState({documents})
-  }
 
   onRenameClick(file){
     this.file = file
@@ -176,7 +179,23 @@ class MyDocuments extends Component {
     this.setState({ showEditModal: false})
   }
   
-  onHidePreview(){
+  onHidePreview(status){
+    if(status.isEditted){
+      let fileData = status.imageData
+      let imgFileSize = fileData.byteLength
+      let count = 0
+      while(imgFileSize>1000){
+        imgFileSize = imgFileSize/1000
+        count +=1
+      }
+      this.file.size = Math.floor(imgFileSize).toString()+' '+bytes[count]
+      this.file.date = new Date()
+      let documents = this.updateDocument(this.file)
+      // this.setState({
+      //   loader: true
+      // })
+      this.uploadFile(fileData, this.file, documents)
+    }
     this.file = {}
     this.fileData = {}
     this.setState({ showPreviewModal: false})
@@ -185,19 +204,22 @@ class MyDocuments extends Component {
   onHideShare(){
     this.file = {}
     this.fileData = {}
-    this.setState({ showShareModal: false})
+    this.setState({ showShareModal: false })
   }
-
-  onSaveName(fileDetails){
-    this.file = fileDetails
-    const documents = this.state.documents.map((document)=>{
-      if(document.fileId===this.file.fileId){
-        document.name=this.file.name
+  
+  updateDocument(fileDetails){
+    let documents = this.state.documents.map((document)=>{
+      if(document.fileId===fileDetails.fileId){
+        document=fileDetails
       }
       return document
     })
+    return documents
+  }
+
+  onSaveName(fileDetails){
+    const documents = this.updateDocument(fileDetails)
     this.userSession.putFile('documents/index.json', JSON.stringify(documents))
-    this.file = {}
     this.setState({
       showEditModal: false,
       documents
@@ -250,7 +272,6 @@ class MyDocuments extends Component {
           loader: true
         })
         const reader  = new FileReader()
-        this.uploading = true
         reader.onload= (e)=>{
           let data = e.target.result
           let imgFileSize = data.byteLength

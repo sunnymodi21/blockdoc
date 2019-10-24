@@ -5,12 +5,12 @@
   "dependencies": {
     "blockstack": "^19.3.0",
     "bootstrap": "^4.3.1",
+    "filerobot-image-editor": "^3.3.0",
     "font-awesome": "^4.7.0",
     "mammoth": "^1.4.8",
     "pdfjs-dist": "^2.2.228",
     "react": "^16.10.2",
     "react-dom": "^16.10.2",
-    "react-imgpro": "^1.4.1",
     "react-pdf": "^4.1.0",
     "react-router-dom": "^5.1.2",
     "react-scripts": "3.0.1",
