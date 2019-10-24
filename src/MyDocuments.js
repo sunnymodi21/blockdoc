@@ -191,9 +191,9 @@ class MyDocuments extends Component {
       this.file.size = Math.floor(imgFileSize).toString()+' '+bytes[count]
       this.file.date = new Date()
       let documents = this.updateDocument(this.file)
-      // this.setState({
-      //   loader: true
-      // })
+      this.setState({
+        loader: true
+      })
       this.uploadFile(fileData, this.file, documents)
     }
     this.file = {}
