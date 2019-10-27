@@ -10,7 +10,8 @@ class PreviewModal extends Component {
     this.state = {
       fileComponent: <div></div>,
       isShow: false,
-      imageUrl:""      
+      imageUrl:"",
+      isImage:false   
     }
   }
 
@@ -82,19 +83,15 @@ class PreviewModal extends Component {
           const url = URL.createObjectURL(blob);
           this.setState({
             fileComponent:
-            <div>
-              <div 
-                title="Edit Image" 
-                className="fa fa-edit text-white cursor-pointer"
-                onClick={this.showImageEditor.bind(this)}>
-              </div>            
+            <div>         
               <img
                 alt=""
                 className="img-fluid"
                 src={url}
               />
             </div>,
-            imageUrl: url
+            imageUrl: url,
+            isImage: true
           })
       }
     }
@@ -106,16 +103,25 @@ class PreviewModal extends Component {
       <div className="modal" style={{display: "block"}}>
           <div className="modal-dialog modal-dialog-scrollable modal-lg" role="document">
             <div className="modal-content modal-transparent">
-                <div className="d-flex justify-content-between">
+                <div className="d-flex justify-content-end">
                     {/* <div className="pl-2 pt-1">
                         <button type="button" className="btn btn-secondary" onClick={this.handleNext.bind(this)}>Next</button>                         
                     </div> */}
-                    <div className="pl-5 pt-2 text-white">{file.name}.{file.extension}</div>
                     <div>              
                         <button type="button" className="close pr-3 text-white" onClick={this.props.handleClose} aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>  
+                </div>
+                <div className="pl-3 row">
+                  <div className="col-md-auto text-white">{file.name}.{file.extension}</div>
+                  {this.state.isImage?<div className="col">
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={this.showImageEditor.bind(this)}
+                      >Edit Image
+                    </button>
+                  </div>:''}   
                 </div>
               <div className="modal-body">   
                 {this.state.fileComponent}

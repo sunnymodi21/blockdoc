@@ -97,8 +97,8 @@ class MyDocuments extends Component {
   }
 
   downloadFile(currentDocument,data){
-    var a = document.createElement('a')
-    const blob = new Blob([data], {type: "octet/stream"}),
+    let a = document.createElement('a')
+    let blob = new Blob([data], {type: "octet/stream"}),
     url = window.URL.createObjectURL(blob)
     a.href = url
     a.download = currentDocument.name+'.'+currentDocument.extension
