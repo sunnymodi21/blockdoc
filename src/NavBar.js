@@ -13,7 +13,7 @@ class NavBar extends Component {
   render() {
     return (
       <nav className="navbar navbar-expand-md navbar-dark bg-blue fixed-top">
-      <Link className="navbar-brand" to="/">BlockDoc</Link>
+      <Link className="navbar-brand" to="/mydocuments">BlockDoc</Link>
       <div className="collapse navbar-collapse" id="navbarsExampleDefault">
         <ul className="navbar-nav mr-auto">
           <li className="nav-item">
