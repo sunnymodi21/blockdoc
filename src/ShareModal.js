@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import { encryptECIES } from 'blockstack/lib/encryption'
 import AsyncSelect from 'react-select/async'
+import { components } from 'react-select';
 import sh from 'shorthash'
 import './Modal.css'
 
@@ -15,6 +16,7 @@ class ShareModal extends Component {
       username: '',
       link: '',
       copied: false,
+      friendSelect: false,
       nonUser: false,
       sharing: false 
     }
@@ -87,6 +89,7 @@ class ShareModal extends Component {
 
   onFriendSelect(selectedFriend){
     this.setState({
+      friendSelect: true,
       nonUser: false,
       copied: false,
       link: ''
@@ -101,9 +104,17 @@ class ShareModal extends Component {
     navigator.clipboard.writeText(this.state.link)
   }
 
-  render() {
+  searchIcon = props => {
     return (
-      
+      <components.DropdownIndicator {...props}>
+        <i className="fa fa-search"></i>
+      </components.DropdownIndicator>
+    );
+  };
+  
+  render() {
+    const DropdownIndicator = this.searchIcon
+    return (
       <div className="modal" style={{display: "block"}}>
       <div className="modal-dialog" role="document">
         <div className="modal-content">
@@ -113,17 +124,19 @@ class ShareModal extends Component {
               </button>
             </div>
           <div className="modal-body">
-            <form>
+            <div>
               <div className="form-group row">
                 <label htmlFor="file-name" className="col-form-label pl-2">Share with:</label>
                 <div className="col-sm-10">     
                   <AsyncSelect
+                      components={{DropdownIndicator}}
                       cacheOptions
                       loadOptions={this.promiseOptions}
                       onChange = {this.onFriendSelect}
+                      placeholder = "Search Blockstack users"
+                      noOptionsMessage = {()=>"Start typing to list users..."}
                   />
                 </div>
-                <small className="form-text text-muted col-sm-12">Search Blockstack users</small>
               </div>
             {this.state.sharing? <div className="d-flex justify-content-center">
                     <span className="spinner-border text-primary" role="status">
@@ -150,11 +163,12 @@ class ShareModal extends Component {
             {this.state.nonUser?<div className="alert alert-danger col-sm-10" role="alert">
               User hasn't signed up on BlockDoc
             </div>: ''}
-            </form>
+            </div>
           </div>
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={this.props.handleClose}>Close</button>
-            <button type="button" className="btn btn-primary" onClick={this.shareDocument}>Share</button>
+            {this.state.friendSelect?
+              <button type="button" className="btn btn-primary" onClick={this.shareDocument}>Share</button>:''}
           </div>
         </div>
       </div>
