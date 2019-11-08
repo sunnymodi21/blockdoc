@@ -84,7 +84,7 @@ class Landing extends Component {
           <div className="col-lg-6 order-lg-2 text-white showcase-img border border-secondary" style={{backgroundImage: "url('img/showcase-1.jpg')"}}></div>
           <div className="col-lg-6 order-lg-1 my-auto showcase-text">
             <h2>Manage and Preview documents</h2>
-            <p className="lead mb-0">Manange and view the documents</p>
+            <p className="lead mb-0">Manage and view the documents</p>
           </div>
         </div>
         <div className="row">

@@ -9,6 +9,7 @@ import FolderAnimation from './FolderAnimation'
 import sh from 'shorthash'
 import { makeECPrivateKey, getPublicKeyFromPrivate } from 'blockstack'
 import './MyDocuments.css'
+import InfoModal from './InfoModal'
 const bytes = ['Bytes','KB', 'MB']
 
 class MyDocuments extends Component {
@@ -17,20 +18,44 @@ class MyDocuments extends Component {
     this.userSession = this.props.userSession
     this.state = {
       documents: [],
-      capturedImageURL:'',
-      isCaptured: false,
       fileName:'untitled.jpg',
       showEditModal: false,
       showPreviewModal: false,
       showShareModal: false,
       loader: true,
-      dragOver: false
+      dragOver: false,
+      infoModal:false,
+      searchTerm: ''
     }
     this.file = {}
     this.getDocument = this.getDocument.bind(this)
     this.uploadDocument = this.uploadDocument.bind(this)
     this.processFiles = this.processFiles.bind(this)
     this.getDocumentList()
+  }
+
+  componentDidMount(){
+    document.onkeydown = ((evt)=>{
+      evt = evt || window.event
+      var isEscape = false
+      if ("key" in evt) {
+          isEscape = (evt.key === "Escape" || evt.key === "Esc")
+      } else {
+          isEscape = (evt.keyCode === 27)
+      }
+      if (isEscape) {
+          this.file = {}
+          this.fileData = {}
+          this.setState({
+            showEditModal: false,
+            showPreviewModal: false,
+            showShareModal: false,
+            dragOver: false,
+            infoModal:false,
+            loader: false
+          })
+      }
+    })
   }
 
   getDocumentList(){
@@ -137,8 +162,10 @@ class MyDocuments extends Component {
   }
 
   documentList(){
-    const documentHTMLList = this.state.documents.map((file) =>
-      <tr key={file.date}>
+    const documentHTMLList = this.state.documents.map((file) =>{
+      let row = ''
+      if(file.name.toLowerCase().indexOf(this.state.searchTerm) > -1){
+        row = <tr key={file.date}>
         <td className="text-truncate cursor-pointer" style={{maxWidth: "100px"}} onClick={()=>this.getDocument(file, false)} >
           {`${file.name}.${file.extension}`}
         </td>
@@ -155,7 +182,9 @@ class MyDocuments extends Component {
           </span>
         </td>
       </tr>
-    )
+      }
+      return row
+    })
     return documentHTMLList
   }
 
@@ -256,10 +285,10 @@ class MyDocuments extends Component {
     for(let i = 0; i < 1; i++){
       let entry = e.dataTransfer.items[i].webkitGetAsEntry()
       if(entry.isFile){
-        console.log('... file[' + i + '].name = ' + e.dataTransfer.files[i].name)  
+        // console.log('... file[' + i + '].name = ' + e.dataTransfer.files[i].name)  
         files.push(e.dataTransfer.files[i])    
       } else if (entry.isDirectory){
-        console.log('... folder[' + i + '].name = ' + e.dataTransfer.files[i].name)
+        // console.log('... folder[' + i + '].name = ' + e.dataTransfer.files[i].name)
       }
     }
     this.processFiles(files)
@@ -293,11 +322,34 @@ class MyDocuments extends Component {
             fileObj.extension = fileNameArray[fileNameArray.length-1]
             fileObj.shareList = []
             this.uploadDocument(data, fileObj)
-          } 
+          } else {
+            this.info = "File too large. Please upload a file less than 25 MB."
+            this.setState({
+              infoModal:true
+            })
+          }
         }
         // reader.readAsDataURL(file)
         reader.readAsArrayBuffer(file)
+      } else {
+        this.info = "File not supported. Please upload a .jpeg, .jpg, .png, .pdf, .doc, .docx, .ppt, .pptx file"
+        this.setState({
+          infoModal:true
+        })
       }
+  }
+
+  onInfoModalClose(){
+    this.setState({
+      infoModal: false,
+      loader: false
+    })
+  }
+
+  onFileSearch(e){
+    this.setState({
+      searchTerm: e.target.value
+    })
   }
 
   render() {
@@ -314,25 +366,33 @@ class MyDocuments extends Component {
           <small className="text-muted pl-2">Supported files types .jpeg, .jpg, .png, .pdf, .doc, .docx, .ppt, .pptx upto 25MB.</small><br></br>
           <small className="text-muted pl-2">Drag and drop currently supports only one file at a time.</small>
           {this.state.documents.length===0? <p className="font-weight-light text-center">No files uploaded yet</p>: 
-          <table className="table table-hover">
-            <thead>
-              <tr>
-                <th scope="col">Name</th>
-                <th scope="col">Date</th>
-                <th scope="col">File Size</th>
-                <th scope="col">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {this.documentList()}
-            </tbody>
-          </table>}
+          <div>
+            <div className="p-1">
+              <input className="form-control" value={this.state.searchTerm} onChange={this.onFileSearch.bind(this)} type="text" placeholder="Search files..">
+              </input>
+            </div>
+            <table className="table table-hover">
+              <thead>
+                <tr>
+                  <th scope="col">Name</th>
+                  <th scope="col">Date</th>
+                  <th scope="col">File Size</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {this.documentList()}
+              </tbody>
+            </table>
+          </div>}
           {this.state.showPreviewModal?
-          <PreviewModal fileDetails={this.file} fileData={this.fileData} handleClose={this.onHidePreview.bind(this)}/>:''}   
+            <PreviewModal fileDetails={this.file} fileData={this.fileData} handleClose={this.onHidePreview.bind(this)}/>:''}   
           {this.state.showEditModal?
-          <FileModal fileDetails={this.file} onSave={this.onSaveName.bind(this)} handleClose={this.onHideRename.bind(this)}/>:''}
+            <FileModal fileDetails={this.file} onSave={this.onSaveName.bind(this)} handleClose={this.onHideRename.bind(this)}/>:''}
           {this.state.showShareModal?
-          <ShareModal documents={this.state.documents} userSession={this.userSession} fileDetails={this.file} handleClose={this.onHideShare.bind(this)}/>:''}               
+            <ShareModal documents={this.state.documents} userSession={this.userSession} fileDetails={this.file} handleClose={this.onHideShare.bind(this)}/>:''}
+          {this.state.infoModal?
+            <InfoModal info={this.info} handleClose={this.onInfoModalClose.bind(this)}/>:''} 
         </div>
     )
   }
