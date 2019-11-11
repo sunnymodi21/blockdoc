@@ -1,12 +1,6 @@
 import React, { Component } from 'react'
 
 class FileSelect extends Component {
-  constructor(props){
-    super(props)
-    this.userSession = this.props.userSession
-    // this.uploadDocument = this.props.uploadDocument
-    this.processFile = this.props.processFile
-  }
 
   onFileSelect(e){
     const files =  e.target.files

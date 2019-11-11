@@ -353,19 +353,24 @@ class MyDocuments extends Component {
   }
 
   render() {
-    const userSession = this.userSession
     return (
         <div className="col-md" onDrop={this.dropHandler.bind(this)} onDragOver={this.dragOverHandler.bind(this)} onDragLeave={this.dragOverLeaveHandler.bind(this)}>
           {this.state.loader? <Spinner/>:''}
           {this.state.dragOver? <FolderAnimation/>:''}
           <FileSelect
-            uploadDocument = {this.uploadDocument}  
-            userSession={userSession}
             processFiles = {this.processFiles}
           />
           <small className="text-muted pl-2">Supported files types .jpeg, .jpg, .png, .pdf, .doc, .docx, .ppt, .pptx upto 25MB.</small><br></br>
           <small className="text-muted pl-2">Drag and drop currently supports only one file at a time.</small>
-          {this.state.documents.length===0? <p className="font-weight-light text-center">No files uploaded yet</p>: 
+          {this.state.documents.length===0? 
+          <div className="text-center font-weight-lighter">
+            <p>No files uploaded yet</p>
+            <span className="far fa-file-pdf" style={noFileIconStyle}></span>
+            <span className="far fa-file-image" style={noFileIconStyle}></span>
+            <span className="far fa-file-word" style={noFileIconStyle}></span>
+            <span className="far fa-file-powerpoint" style={noFileIconStyle}></span>
+          </div>
+          : 
           <div>
             <div className="p-1">
               <input className="form-control" value={this.state.searchTerm} onChange={this.onFileSearch.bind(this)} type="text" placeholder="Search files..">
@@ -398,4 +403,5 @@ class MyDocuments extends Component {
   }
 }
 
+const noFileIconStyle = {padding:"10px", color: "#6c757d", fontSize: "3em", transform: "rotate(10deg)"}
 export default MyDocuments
